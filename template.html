@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Technical Talks Event Schedule</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7f6;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.08);
+            border-radius: 8px;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .search-container {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .search-container input[type="text"] {
+            width: 70%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
+            transition: border-color 0.3s ease;
+        }
+        .search-container input[type="text"]:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        .schedule-item {
+            display: flex;
+            background-color: #fcfcfc;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .schedule-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        .schedule-item.break {
+            background-color: #ecf0f1;
+            color: #555;
+            text-align: center;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            font-weight: bold;
+        }
+        .time-slot {
+            flex-basis: 120px;
+            flex-shrink: 0;
+            background-color: #34495e;
+            color: #ffffff;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.1em;
+            font-weight: bold;
+            border-right: 1px solid #2c3e50;
+        }
+        .time-slot span {
+            display: block;
+        }
+        .time-slot .end-time {
+            font-size: 0.8em;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+        .talk-details {
+            flex-grow: 1;
+            padding: 20px;
+        }
+        .talk-details h2 {
+            color: #3498db;
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 1.5em;
+        }
+        .talk-details .speakers {
+            font-style: italic;
+            color: #7f8c8d;
+            margin-bottom: 10px;
+        }
+        .talk-details .categories {
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+        .talk-details .category-tag {
+            background-color: #e8f6f3;
+            color: #27ae60;
+            padding: 5px 10px;
+            border-radius: 3px;
+            margin-right: 5px;
+            display: inline-block;
+            margin-bottom: 5px;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Technical Talks Event Schedule</h1>
+
+        <div class="search-container">
+            <input type="text" id="categorySearch" placeholder="Search talks by category...">
+        </div>
+
+        <div id="schedule">
+            <!-- Schedule items will be rendered here by JavaScript -->
+        </div>
+    </div>
+
+    <script id="event-data-script">
+        // Event data and schedule will be injected here
+        const fullSchedule = []; // This will be replaced by actual data
+    </script>
+
+    <script>
+        function formatTime(date) {
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function renderSchedule(scheduleToRender) {
+            const scheduleContainer = document.getElementById('schedule');
+            scheduleContainer.innerHTML = ''; // Clear previous schedule
+
+            scheduleToRender.forEach(item => {
+                const itemElement = document.createElement('div');
+                itemElement.classList.add('schedule-item');
+                itemElement.setAttribute('data-categories', item.categories ? item.categories.map(c => c.toLowerCase()).join(' ') : '');
+
+                if (item.type === 'talk') {
+                    itemElement.innerHTML = `
+                        <div class="time-slot">
+                            <span>${formatTime(item.startTime)}</span>
+                            <span class="end-time">${formatTime(item.endTime)}</span>
+                        </div>
+                        <div class="talk-details">
+                            <h2>${item.title}</h2>
+                            <p class="speakers">Speakers: ${item.speakers.join(', ')}</p>
+                            <p>${item.description}</p>
+                            <div class="categories">
+                                ${item.categories.map(cat => `<span class="category-tag">${cat}</span>`).join('')}
+                            </div>
+                        </div>
+                    `;
+                } else if (item.type === 'break') {
+                    itemElement.classList.add('break');
+                    itemElement.innerHTML = `
+                        <div class="time-slot">
+                            <span>${formatTime(item.startTime)}</span>
+                            <span class="end-time">${formatTime(item.endTime)}</span>
+                        </div>
+                        <h2>${item.name}</h2>
+                    `;
+                }
+                scheduleContainer.appendChild(itemElement);
+            });
+        }
+
+        // Initial render
+        renderSchedule(fullSchedule);
+
+        // Search functionality
+        document.getElementById('categorySearch').addEventListener('keyup', function() {
+            const searchTerm = this.value.toLowerCase();
+            const talkItems = document.querySelectorAll('.schedule-item:not(.break)');
+
+            talkItems.forEach(item => {
+                const categories = item.getAttribute('data-categories');
+                if (searchTerm === '' || categories.includes(searchTerm)) {
+                    item.classList.remove('hidden');
+                } else {
+                    item.classList.add('hidden');
+                }
+            });
+        });
+
+    </script>
+</body>
+</html>
